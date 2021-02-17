@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  webnuxt:
+    container_name: web_nuxt
+    build: ./docker
+    ports:
+      - 9100:80
+    privileged: true
+    volumes:
+      - ./server/trello:/var/www/html
+      - ./docker/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
+
+  dbnuxt:
+    image: mysql:5.7.16
+    container_name: nuxt_db
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: docker-database
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      TZ: 'Asia/Tokyo'
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./docker/db/data:/var/lib/mysql
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./docker/db/sql:/docker-entrypoint-initdb.d
+    ports:
+      - 3942:3306
+
+  phpmyadminnuxt:
+    container_name: phpmyadmin_nuxt
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOSTS=nuxt_db
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+    ports:
+      - 9101:80
